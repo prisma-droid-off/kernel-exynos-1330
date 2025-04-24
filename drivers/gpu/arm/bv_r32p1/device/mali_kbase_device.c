@@ -194,7 +194,7 @@ static int mali_oom_notifier_handler(struct notifier_block *nb,
 			KBASE_PAGES_TO_KIB(atomic_read(&(kctx->used_pages)));
 
 		rcu_read_lock();
-		pid_struct = find_get_pid(kctx->pid);
+		pid_struct = get_pid(find_pid_ns(kctx->pid, &init_pid_ns));
 		task = pid_task(pid_struct, PIDTYPE_PID);
 
 		dev_err(kbdev->dev,
