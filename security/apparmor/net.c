@@ -95,9 +95,9 @@ static void audit_unix_addr(struct audit_buffer *ab, const char *str,
 }
 
 static void audit_unix_sk_addr(struct audit_buffer *ab, const char *str,
-			       struct sock *sk)
+			     const struct sock *sk)
 {
-	const struct unix_sock *u = unix_sk(sk);
+	struct unix_sock *u = unix_sk(sk);
 	if (u && u->addr)
 		audit_unix_addr(ab, str, u->addr->name, u->addr->len);
 	else
