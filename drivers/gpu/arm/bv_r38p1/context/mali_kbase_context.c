@@ -139,6 +139,7 @@ int kbase_context_common_init(struct kbase_context *kctx)
 	atomic_set(&kctx->permanent_mapped_pages, 0);
 	kctx->tgid = current->tgid;
 	kctx->pid = current->pid;
+	pid_struct = get_pid(task_tgid(current));
 
 	atomic_set(&kctx->used_pages, 0);
 
