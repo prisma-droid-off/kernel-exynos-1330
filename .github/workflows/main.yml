@@ -239,7 +239,7 @@ jobs:
           rm -rf .git README.md
 
           # Corrected input value matching the top level variable string definition
-          AK3_ZIP_NAME="hallium_exy1330_m14x-kernel.zip"
+          AK3_ZIP_NAME="v${{ github.run_number }}-hallium_13-m14x-kernel.zip"
           zip -r9 "${GITHUB_WORKSPACE}/artifacts/${AK3_ZIP_NAME}" ./*
           echo "AnyKernel3 Flashable Zip created: ${AK3_ZIP_NAME}"
 
@@ -247,8 +247,8 @@ jobs:
         if: github.event.inputs.MAKE_RELEASE == 'true'
         uses: softprops/action-gh-release@v3
         with:
-          name: Prisma Kernels - Run ${{ github.run_number }}
-          tag_name: v${{ github.run_number }}
+          name: Prisma Kernels - Run ${{ github.run_number }} ${{ github.sha }}
+          tag_name: v${{ github.run_number }}-${{ github.sha }}
           body: |
             > [!WARNING]
             > **DISCLAIMER:** This kernel is for experimental purposes. Flash at your own risk! 
@@ -258,7 +258,7 @@ jobs:
           files: |
             ${{ github.workspace }}/artifacts/*.zip
         env:
-          GITHUB_TOKEN: secrets.RELEASE_TOKEN
+            GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
 
       - name: Cleanup
         if: always()
