@@ -144,20 +144,30 @@ int kbase_context_common_init(struct kbase_context *kctx)
 
 	/* Check if this is a Userspace created context */
 	if (likely(kctx->filp)) {
+		struct pid *pid_struct;
 
 		rcu_read_lock();
-		struct task_struct *task = current;
+		pid_struct = get_pid(task_tgid(current));
+		if (likely(pid_struct)) {
+			struct task_struct *task = current;
 
-		if (likely(task)) {
+			if (likely(task)) {
+				/* Take a reference on the task to avoid slow lookup
+				 * later on from the page allocation loop.
+				 */
+				get_task_struct(task);
+				kctx->task = task;
+			} else {
+				dev_err(kctx->kbdev->dev,
+					"Failed to get task pointer for %s/%d",
+					current->comm, current->pid);
+				err = -ESRCH;
+			}
 
-			/* Take a reference on the task to avoid slow lookup
-			 * later on from the page allocation loop.
-			 */
-			get_task_struct(task);
-			kctx->task = task;
+			put_pid(pid_struct);
 		} else {
 			dev_err(kctx->kbdev->dev,
-				"Failed to get task pointer for %s/%d",
+				"Failed to get pid pointer for %s/%d",
 				current->comm, current->pid);
 			err = -ESRCH;
 		}
@@ -167,16 +177,6 @@ int kbase_context_common_init(struct kbase_context *kctx)
 			return err;
                 kbase_mem_mmgrab();
                 kctx->process_mm = current->mm;
-	}
-
-	/* Check if this is a Userspace created context */
-	if (likely(kctx->filp)) {
-		/* This merely takes a reference on the mm_struct and not on the
-		 * address space and so won't block the freeing of address space
-		 * on process exit.
-		 */
-		mmgrab(current->mm);
-		kctx->process_mm = current->mm;
 	}
 
 	atomic_set(&kctx->used_pages, 0);
