@@ -147,9 +147,9 @@ int kbase_context_common_init(struct kbase_context *kctx)
 		struct pid *pid_struct;
 
 		rcu_read_lock();
-		pid_struct = get_pid(task_tgid(current));
+		pid_struct = get_pid(find_pid_ns(kctx->tgid, &init_pid_ns));
 		if (likely(pid_struct)) {
-			struct task_struct *task = current;
+			struct task_struct *task = pid_task(pid_struct, PIDTYPE_PID);
 
 			if (likely(task)) {
 				/* Take a reference on the task to avoid slow lookup
@@ -175,8 +175,16 @@ int kbase_context_common_init(struct kbase_context *kctx)
 
 		if (unlikely(err))
 			return err;
-                kbase_mem_mmgrab();
-                kctx->process_mm = current->mm;
+	}
+
+	/* Check if this is a Userspace created context */
+	if (likely(kctx->filp)) {
+		/* This merely takes a reference on the mm_struct and not on the
+		 * address space and so won't block the freeing of address space
+		 * on process exit.
+		 */
+		mmgrab(current->mm);
+		kctx->process_mm = current->mm;
 	}
 
 	atomic_set(&kctx->used_pages, 0);
