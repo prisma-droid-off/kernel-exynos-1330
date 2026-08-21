@@ -140,8 +140,8 @@ int kbase_context_common_init(struct kbase_context *kctx)
 	kctx->tgid = current->tgid;
 	kctx->pid = current->pid;
 	kctx->task = NULL;
-	/* drivers: gpu: mali: midgard: Do not get task based on tgid, use current instead 
-	?* reference commit: https://gitlab.com/ubports/porting/reference-device-ports/halium13/volla-phone-quintus/kernel-volla-mt6877/-/commit/d949ee893cd8487646e378df4385b150be34da3b
+	/* drivers: gpu: mali: midgard: Do not get task based on tgid, use current instead */
+	/* reference commit: https://gitlab.com/ubports/porting/reference-device-ports/halium13/volla-phone-quintus/kernel-volla-mt6877/-/commit/d949ee893cd8487646e378df4385b150be34da3b */
 	/* Check if this is a Userspace created context */
 	if (likely(kctx->filp)) {
 
