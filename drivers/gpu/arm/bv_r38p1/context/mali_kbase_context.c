@@ -140,15 +140,13 @@ int kbase_context_common_init(struct kbase_context *kctx)
 	kctx->tgid = current->tgid;
 	kctx->pid = current->pid;
 	kctx->task = NULL;
-
+	/* drivers: gpu: mali: midgard: Do not get task based on tgid, use current instead 
+	?* reference commit: https://gitlab.com/ubports/porting/reference-device-ports/halium13/volla-phone-quintus/kernel-volla-mt6877/-/commit/d949ee893cd8487646e378df4385b150be34da3b
 	/* Check if this is a Userspace created context */
 	if (likely(kctx->filp)) {
-		struct pid *pid_struct;
 
 		rcu_read_lock();
-		pid_struct = get_pid(find_pid_ns(kctx->tgid, &init_pid_ns));
-		if (likely(pid_struct)) {
-			struct task_struct *task = pid_task(pid_struct, PIDTYPE_PID);
+			struct task_struct *task = current;
 
 			if (likely(task)) {
 				/* Take a reference on the task to avoid slow lookup
@@ -162,14 +160,6 @@ int kbase_context_common_init(struct kbase_context *kctx)
 					current->comm, current->pid);
 				err = -ESRCH;
 			}
-
-			put_pid(pid_struct);
-		} else {
-			dev_err(kctx->kbdev->dev,
-				"Failed to get pid pointer for %s/%d",
-				current->comm, current->pid);
-			err = -ESRCH;
-		}
 		rcu_read_unlock();
 
 		if (unlikely(err))
